@@ -78,8 +78,15 @@ func (s *Server) handleRequests() *http.ServeMux {
 }
 
 func (s *Server) handleGetUrlRequest(w http.ResponseWriter, r *http.Request) (int, ServerError) {
-	url := r.PathValue("url")
-	log.Println("get request for url:", url)
+	shortUrl := r.PathValue("url")
+
+	url, err := s.store.GetUrlFromShortUrl(shortUrl)
+	if err != nil {
+		errStr := fmt.Sprint("unable to read from database: %s", err.Error())
+		return http.StatusInternalServerError, ServerError{ErrStr: errStr}
+	}
+
+	http.Redirect(w, r, url.RedirectUrl, http.StatusSeeOther)
 
 	return http.StatusOK, NoServerError
 }

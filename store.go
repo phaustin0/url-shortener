@@ -8,7 +8,7 @@ import (
 
 type Storage interface {
 	CreateShortUrl(url Url) error
-	GetUrlFromShortUrl(shortUrl string) *Url
+	GetUrlFromShortUrl(shortUrl string) (*Url, error)
 }
 
 type PostgresStore struct {
@@ -53,9 +53,23 @@ func (s *PostgresStore) CreateShortUrl(url Url) error {
 	return err
 }
 
-func (s *PostgresStore) GetUrlFromShortUrl(shortUrl string) *Url {
+func (s *PostgresStore) GetUrlFromShortUrl(shortUrl string) (*Url, error) {
+	query := `select * from url where shortUrl=$1`
+	rows, err := s.db.Query(query, shortUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	var temp, redirectUrl string
+	for rows.Next() {
+		err = rows.Scan(&temp, &redirectUrl)
+	}
+	if err != nil {
+		return nil, err
+	}
+
 	return &Url{
 		ShortUrl:    shortUrl,
-		RedirectUrl: "",
-	}
+		RedirectUrl: redirectUrl,
+	}, err
 }
