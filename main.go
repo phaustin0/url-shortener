@@ -1,9 +1,7 @@
 package main
 
-import (
-	"fmt"
-)
-
 func main() {
-	fmt.Println("Hello, World!")
+	listenAddr := ":8000"
+	s := NewServer(listenAddr)
+	s.Listen()
 }
